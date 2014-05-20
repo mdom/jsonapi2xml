@@ -1,0 +1,65 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+use Mojolicious::Lite;
+use Mojo::ByteStream qw(b);
+use Scalar::Util qw(blessed reftype);
+use Data::Plist::XMLWriter;
+use Mojo::JSON qw(decode_json);
+
+our $VERSION = '0.01';
+
+get '/*url' => sub {
+	my $self = shift;
+	my $url  = $self->param('url');
+	my $ua = Mojo::UserAgent->new();
+	my $tx = $ua->get( $url );
+	if ( my $res = $tx->success ) {
+		my $json = decode_json(b($res->body)->encode);
+		stringify_objects($json);
+		my $converter = Data::Plist::XMLWriter->new();
+		$self->render(format => 'xml', data => $converter->write($json));
+	}
+	else {
+		my ($err, $code) = $tx->error;
+		$self->render(text => "$err $code");
+	}
+	return;
+};
+
+app->start;
+
+sub stringify_objects {
+  for my $val (@_) {
+    next unless my $ref = reftype $val;
+    if (blessed $val) { $val = "$val" }
+    elsif ($ref eq 'ARRAY') { stringify_objects(@$val) }
+    elsif ($ref eq 'HASH')  { stringify_objects(values %$val) }
+  }
+}
+
+=pod
+
+=head1 NAME
+
+jsonapi2xml - cgi to convert json api to plist
+
+=head1 DESCRIPTION
+
+jsonapi2xml is a simple cgi-script that converts json to a plist.
+
+It examines its PATH_INFO to get an url for a webapi returing json:
+
+  http://example.org/cgi-bin/jsonapi2xml/api.metacpan.org/v0/release/Moose
+
+This will return the plist for http://api.metacpan.org/v0/release/Moose.
+
+=head1 INSTALLATION
+
+  perl Build.PL
+  ./Build.PL install
+
+=cut
+

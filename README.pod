@@ -1,0 +1,19 @@
+=head1 NAME
+
+jsonapi2xml - cgi to convert json api to plist
+
+=head1 DESCRIPTION
+
+jsonapi2xml is a simple cgi-script that converts json to a plist.
+
+It examines its PATH_INFO to get an url for a webapi returing json:
+
+  http://example.org/cgi-bin/jsonapi2xml/api.metacpan.org/v0/release/Moose
+
+This will return the plist for http://api.metacpan.org/v0/release/Moose.
+
+=head1 INSTALLATION
+
+  perl Build.PL
+  ./Build.PL install
+
