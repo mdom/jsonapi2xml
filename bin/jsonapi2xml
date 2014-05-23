@@ -17,7 +17,7 @@ my $ua = LWP::UserAgent->new;
 get '/*url' => sub {
 	my $self = shift;
 	my $url  = $self->param('url');
-	my $res = $ua->get( $url );
+	my $res = $ua->get( "http://$url" );
 	if ( $res->is_success ) {
 		my $xml = json2plist($res->decoded_content);
 		$self->render(format => 'xml', data => $xml);
