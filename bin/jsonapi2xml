@@ -8,23 +8,24 @@ use Mojo::ByteStream qw(b);
 use Scalar::Util qw(blessed reftype);
 use Data::Plist::XMLWriter;
 use Mojo::JSON qw(decode_json);
+use LWP::UserAgent;
 
 our $VERSION = '0.01';
+
+my $ua = LWP::UserAgent->new;
 
 get '/*url' => sub {
 	my $self = shift;
 	my $url  = $self->param('url');
-	my $ua = Mojo::UserAgent->new();
-	my $tx = $ua->get( $url );
-	if ( my $res = $tx->success ) {
 		my $json = decode_json(b($res->body)->encode);
 		stringify_objects($json);
 		my $converter = Data::Plist::XMLWriter->new();
 		$self->render(format => 'xml', data => $converter->write($json));
+	my $res = $ua->get( $url );
+	if ( $res->is_success ) {
 	}
 	else {
-		my ($err, $code) = $tx->error;
-		$self->render(text => "$err $code");
+		$self->render(text => $res->status_line, code => 500);
 	}
 	return;
 };
