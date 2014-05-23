@@ -17,12 +17,10 @@ my $ua = LWP::UserAgent->new;
 get '/*url' => sub {
 	my $self = shift;
 	my $url  = $self->param('url');
-		my $json = decode_json(b($res->body)->encode);
-		stringify_objects($json);
-		my $converter = Data::Plist::XMLWriter->new();
-		$self->render(format => 'xml', data => $converter->write($json));
 	my $res = $ua->get( $url );
 	if ( $res->is_success ) {
+		my $xml = json2plist($res->decoded_contetn);
+		$self->render(format => 'xml', data => $xml);
 	}
 	else {
 		$self->render(text => $res->status_line, code => 500);
@@ -31,6 +29,14 @@ get '/*url' => sub {
 };
 
 app->start;
+
+sub json2plist {
+	my $json = shift;
+	my $ref = decode_json(b($json)->encode);
+	stringify_objects($ref);
+	my $converter = Data::Plist::XMLWriter->new();
+	return $converter->write($ref);
+}
 
 sub stringify_objects {
   for my $val (@_) {
