@@ -45,6 +45,24 @@ sub config_for_url {
 	return;
 } 
 
+sub get_oauth {
+    my ( $url, $conf ) = @_;
+    require Net::OAuth::Simple;
+    my $client = Net::OAuth::Simple->new(
+        protocol_version => $config->{oauth_protocol}
+        ? $config->{oauth_protocol}
+        : '1.0a',
+        tokens => {
+            consumer_key        => $config->{oauth_consumer_key},
+            consumer_secret     => $config->{oauth_consumer_secret},
+            access_token        => $config->{oauth_access_token},
+            access_token_secret => $config->{oauth_token_secret},
+        }
+    );
+    my $res = $client->make_restricted_request( $url, 'GET' );
+    return $res;
+}
+
 sub json2plist {
 	my $json = shift;
 	my $ref = decode_json(b($json)->encode);
