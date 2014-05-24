@@ -12,12 +12,16 @@ use LWP::UserAgent;
 
 our $VERSION = '0.01';
 
+plugin 'JSONConfig';
+
 my $ua = LWP::UserAgent->new;
 
 get '/*url' => sub {
 	my $self = shift;
 	my $url  = $self->param('url');
-	my $res = $ua->get( "http://$url" );
+	my $config = config_for_url($url);
+	my $scheme = $config->{ssl} ? 'https' : 'http';
+	my $res = $ua->get( "$scheme://$url" );
 	if ( $res->is_success ) {
 		my $xml = json2plist($res->decoded_content);
 		$self->render(format => 'xml', data => $xml);
@@ -29,6 +33,17 @@ get '/*url' => sub {
 };
 
 app->start;
+
+sub config_for_url {
+	my $url = shift;
+	my $config = app->config;
+	for my $spec ( @{$config->{apis}} ) {
+		if ( index($url,$spec->{base}) == 0 ) {
+			return $spec;
+		}
+	}
+	return;
+} 
 
 sub json2plist {
 	my $json = shift;
