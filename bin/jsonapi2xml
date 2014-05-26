@@ -62,6 +62,11 @@ sub config_for_url {
 
 sub get_oauth {
     my ( $url, $conf ) = @_;
+sub get_url_plain {
+    my ( $ua, $url, $config ) = @_;
+    return $ua->get($url);
+}
+
     require Net::OAuth::Simple;
     my $client = Net::OAuth::Simple->new(
         protocol_version => $config->{oauth_protocol}
