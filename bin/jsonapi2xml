@@ -22,7 +22,7 @@ get '/*url' => sub {
 	my $res = get_url( $ua, $url );
 	if ( $res->is_success ) {
 		my $xml = json2plist($res->decoded_content);
-		$self->render(format => 'xml', data => $xml);
+		$self->render(format => 'xml', data => b($xml)->encode);
 	}
 	else {
 		$self->render(text => $res->status_line, code => 500);
