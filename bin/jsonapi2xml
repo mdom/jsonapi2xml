@@ -19,9 +19,7 @@ my $ua = LWP::UserAgent->new;
 get '/*url' => sub {
 	my $self = shift;
 	my $url  = $self->param('url');
-	my $config = config_for_url($url);
-	my $scheme = $config->{ssl} ? 'https' : 'http';
-	my $res = $ua->get( "$scheme://$url" );
+	my $res = get_url( $ua, $url );
 	if ( $res->is_success ) {
 		my $xml = json2plist($res->decoded_content);
 		$self->render(format => 'xml', data => $xml);
@@ -33,6 +31,23 @@ get '/*url' => sub {
 };
 
 app->start;
+
+sub get_url {
+    my ( $ua, $url ) = @_;
+    my $config       = config_for_url($url);
+    my $scheme       = $config->{ssl} ? 'https' : 'http';
+
+    $url = "$scheme://$url";
+
+    my $auth = $config->{auth};
+    my $get = \&get_url_plain;
+    if ( $auth ) {
+	    if ( $auth eq 'oauth' ) {
+		$get = \&get_url_oauth;
+	    }
+    }
+    return $get->($ua,$url,$config);
+}
 
 sub config_for_url {
 	my $url = shift;
