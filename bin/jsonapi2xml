@@ -60,23 +60,24 @@ sub config_for_url {
 	return;
 } 
 
-sub get_oauth {
-    my ( $url, $conf ) = @_;
 sub get_url_plain {
     my ( $ua, $url, $config ) = @_;
     return $ua->get($url);
 }
 
+sub get_url_oauth {
+    my ( $ua, $url, $config ) = @_;
     require Net::OAuth::Simple;
     my $client = Net::OAuth::Simple->new(
         protocol_version => $config->{oauth_protocol}
         ? $config->{oauth_protocol}
         : '1.0a',
+	browser => $ua,
         tokens => {
             consumer_key        => $config->{oauth_consumer_key},
             consumer_secret     => $config->{oauth_consumer_secret},
-            access_token        => $config->{oauth_access_token},
-            access_token_secret => $config->{oauth_token_secret},
+            access_token        => $config->{oauth_access_key},
+            access_token_secret => $config->{oauth_access_secret},
         }
     );
     my $res = $client->make_restricted_request( $url, 'GET' );
