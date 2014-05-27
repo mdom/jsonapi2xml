@@ -34,19 +34,19 @@ app->start;
 
 sub get_url {
     my ( $ua, $url ) = @_;
-    my $config       = config_for_url($url);
-    my $scheme       = $config->{ssl} ? 'https' : 'http';
+    my $config = config_for_url($url);
+    my $scheme = $config->{ssl} ? 'https' : 'http';
 
     $url = "$scheme://$url";
 
-    my $auth = $config->{auth};
-    my $get = \&get_url_plain;
-    if ( $auth ) {
-	    if ( $auth eq 'oauth' ) {
-		$get = \&get_url_oauth;
-	    }
-    }
-    return $get->($ua,$url,$config);
+    my $auth = $config->{auth} || 'no_auth';
+    my %auth_method = (
+        'no_auth' => \&get_url_plain,
+        'oauth'   => \&get_url_oauth,
+    );
+    my $get = $auth_method{$auth};
+    return if not defined $get;
+    return $get->( $ua, $url, $config );
 }
 
 sub config_for_url {
