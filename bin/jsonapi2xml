@@ -18,17 +18,17 @@ plugin 'JSONConfig';
 my $ua = LWP::UserAgent->new;
 
 get '/*url' => sub {
-	my $self = shift;
-	my $url  = $self->param('url');
-	my $res = get_url( $ua, $url );
-	if ( $res->is_success ) {
-		my $xml = json2plist($res->decoded_content);
-		$self->render(format => 'xml', data => b($xml)->encode);
-	}
-	else {
-		$self->render(text => $res->status_line, code => 500);
-	}
-	return;
+    my $self = shift;
+    my $url  = $self->param('url');
+    my $res  = get_url( $ua, $url );
+    if ( $res->is_success ) {
+        my $xml = json2plist( $res->decoded_content );
+        $self->render( format => 'xml', data => b($xml)->encode );
+    }
+    else {
+        $self->render( text => $res->status_line, code => 500 );
+    }
+    return;
 };
 
 app->start;
@@ -52,15 +52,15 @@ sub get_url {
 }
 
 sub config_for_url {
-	my $url = shift;
-	my $config = app->config;
-	for my $spec ( @{$config->{apis}} ) {
-		if ( index($url,$spec->{base}) == 0 ) {
-			return $spec;
-		}
-	}
-	return;
-} 
+    my $url    = shift;
+    my $config = app->config;
+    for my $spec ( @{ $config->{apis} } ) {
+        if ( index( $url, $spec->{base} ) == 0 ) {
+            return $spec;
+        }
+    }
+    return;
+}
 
 sub get_url_plain {
     my ( $ua, $url, $config ) = @_;
@@ -84,8 +84,8 @@ sub get_url_oauth {
         protocol_version => $config->{oauth_protocol}
         ? $config->{oauth_protocol}
         : '1.0a',
-	browser => $ua,
-        tokens => {
+        browser => $ua,
+        tokens  => {
             consumer_key        => $config->{oauth_consumer_key},
             consumer_secret     => $config->{oauth_consumer_secret},
             access_token        => $config->{oauth_access_key},
@@ -97,20 +97,20 @@ sub get_url_oauth {
 }
 
 sub json2plist {
-	my $json = shift;
-	my $ref = decode_json(b($json)->encode);
-	stringify_objects($ref);
-	my $converter = Data::Plist::XMLWriter->new();
-	return $converter->write($ref);
+    my $json = shift;
+    my $ref  = decode_json( b($json)->encode );
+    stringify_objects($ref);
+    my $converter = Data::Plist::XMLWriter->new();
+    return $converter->write($ref);
 }
 
 sub stringify_objects {
-  for my $val (@_) {
-    next unless my $ref = reftype $val;
-    if (blessed $val) { $val = "$val" }
-    elsif ($ref eq 'ARRAY') { stringify_objects(@$val) }
-    elsif ($ref eq 'HASH')  { stringify_objects(values %$val) }
-  }
+    for my $val (@_) {
+        next unless my $ref = reftype $val;
+        if ( blessed $val) { $val = "$val" }
+        elsif ( $ref eq 'ARRAY' ) { stringify_objects(@$val) }
+        elsif ( $ref eq 'HASH' )  { stringify_objects( values %$val ) }
+    }
 }
 
 =pod
